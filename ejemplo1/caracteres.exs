@@ -1,9 +1,6 @@
 palabra = "ÁHLEÍÓÑ"
-letras = String.graphemes(palabra)
 
-letras_a_reemplazar = String.graphemes("ÁÉÍÓÚ")
-reemplazos = String.graphemes("AEIOU")
-conjunto = Enum.zip(letras_a_reemplazar, reemplazos)
+conjunto = Enum.zip(String.graphemes("ÁÉÍÓÚ"), String.graphemes("AEIOU"))
 
 funcion = fn letra_para_reemplazar ->
   letra_nueva = conjunto |> Enum.filter( fn {letra, _} -> letra == letra_para_reemplazar end)
@@ -14,7 +11,7 @@ funcion = fn letra_para_reemplazar ->
   end
 end
 
-letras |> Enum.map(funcion) |> Enum.join() |> IO.inspect()
+String.graphemes(palabra) |> Enum.map(funcion) |> Enum.join() |> IO.inspect()
 
 palabra
   |> String.replace("Á","A")

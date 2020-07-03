@@ -3,9 +3,17 @@
 
 # Fase 2: Hacer el dibujo
 
+defmodule Usuario do
+  defstruct nombre: "", partidas_jugadas: 0, partidas_ganadas: 0
+end
+
 defmodule Ahorcado do
 
   def iniciar_juego() do
+    ivan = %Usuario{nombre: "Ivan"}
+    # jhon = %Usuario{nombre: "Jhon"}
+    Map.replace!(ivan, :nombre, "Ivancini") |> IO.inspect()
+
     # Seleccionar palabra
     palabra = seleccionar_palabra()
     palabra_normalizada = normalizar_palabra(palabra);
@@ -111,18 +119,23 @@ defmodule Ahorcado do
 
   def juego_finalizado(:ok,_) do
     IO.puts("Has ganado")
-    jugar_de_nuevo()
+    preguntar_si_jugar_de_nuevo()
   end
   def juego_finalizado(:nok, palabra) do
     IO.puts("Has perdido. La palabra era: #{palabra}")
-    jugar_de_nuevo()
+    preguntar_si_jugar_de_nuevo()
   end
 
-  def jugar_de_nuevo() do
+  def preguntar_si_jugar_de_nuevo() do
     respuesta = IO.gets("Desea jugar de nuevo? ")
-    if respuesta || String.upcase() || String.starts_with?("S") do
-      iniciar_juego()
+    cond do
+      respuesta |> String.upcase() |> String.starts_with?("S") ->
+        iniciar_juego()
+      ! (respuesta |> String.upcase() |> String.starts_with?("N") )->
+        IO.puts("Por favor, introduzca Si o No.")
+        preguntar_si_jugar_de_nuevo()
     end
+
   end
 
 end

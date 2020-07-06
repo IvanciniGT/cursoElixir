@@ -50,6 +50,7 @@ defmodule Ahorcado do
     jugar_ronda(usuario,palabra, enmascarar_palabra(palabra,palabra_normalizada, []),palabra_normalizada, [], 6)
   end
 
+  @spec mostrar_bienvenida :: :ok
   def mostrar_bienvenida() do
     IO.puts("Bienvenido al juego del Ahorcado.")
     IO.puts(" Tienes que adivinar la palabra secreta.")
@@ -60,7 +61,8 @@ defmodule Ahorcado do
   end
 
   def lista_palabras() do
-    ["murcielagó","león","tigré"]
+    File.stream!("./lib/paises.txt") |>
+    Enum.map(fn palabra -> String.trim(palabra) end)
   end
 
   def jugar_ronda(usuario , palabra,_ , _ , _, 0) do
@@ -74,7 +76,7 @@ defmodule Ahorcado do
 
   def jugar_ronda(usuario, palabra, palabra_enmascarada, palabra_normalizada, letras, intentos) do
     # Mostrar pantalla
-    mostrar_pantalla(palabra_enmascarada, intentos)
+    mostrar_pantalla(palabra_enmascarada, intentos,letras)
     # Pedir letra
     letra_actual=pedir_letra(letras)
     letras = letras ++ [letra_actual]
@@ -88,10 +90,27 @@ defmodule Ahorcado do
     end
   end
 
-  def mostrar_pantalla(palabra_enmascarada, intentos) do
+  def mostrar_pantalla(palabra_enmascarada, intentos, letras) do
+    Enum.each(0..80, fn _ -> IO.puts("\n") end)
     IO.puts("Le quedan #{intentos} intentos")
-    IO.puts("La palabra a adivinar es: #{palabra_enmascarada}")
+    #dibujar_ahorcado(intentos)
+    lineas=cargar_imagenes_ahorcado() |> Enum.at(6-intentos)
+    IO.puts(Enum.at(lineas,0))
+    IO.puts(Enum.at(lineas,1))
+    IO.puts(Enum.at(lineas,2) <> "   Letras utilizadas:")
+    IO.puts(Enum.at(lineas,3) <> "   " <> Enum.join(letras," "))
+    IO.puts(Enum.at(lineas,5) <>"    La palabra a adivinar es: #{palabra_enmascarada}")
+    IO.puts(Enum.at(lineas,6))
+    IO.puts("")
   end
+
+  def cargar_imagenes_ahorcado() do
+    File.stream!("./lib/ahorcado.txt") |> Enum.map(fn linea -> String.slice(linea,0..-2) end) |> Enum.chunk_every(7)
+  end
+
+#  def dibujar_ahorcado(intentos) do
+#    cargar_imagenes_ahorcado() |> Enum.at(6-intentos) |> IO.puts()
+#  end
 
   def pedir_letra(letras) do
     letra = IO.gets("Dame una letra: ") |> String.trim()

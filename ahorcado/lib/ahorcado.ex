@@ -1,19 +1,11 @@
 
-# Fase 1: Hacemos el juego, sin los dibujitos
-# Palabra fija -> Sacarla random de una lista fija -> Sacarla random de un fichero
-
-# Fase 2: Hacer el dibujo
-
-defmodule Usuario do
-  defstruct nombre: "", partidas_jugadas: 0, partidas_ganadas: 0
-end
-
 defmodule Ahorcado do
   @moduledoc """
   Documentation for `Ahorcado`.
   """
 
   def iniciar_juego() do
+    mostrar_bienvenida()
     usuario = obtener_usuario()
     iniciar_partida(usuario)
   end
@@ -31,19 +23,15 @@ defmodule Ahorcado do
       ! (respuesta |> String.upcase() |> String.starts_with?("N") )->
         IO.puts("Por favor, introduzca Si o No.")
         preguntar_si_otro_usuario()
+      true -> :nil
     end
-  end
-
-  def actualizar_estadisticas_usuario(usuario, gano) do
-    Map.replace!( usuario, :partidas_jugadas, usuario.partidas_jugadas + 1) |>
-    Map.replace!( :partidas_ganadas, usuario.partidas_ganadas + (if gano, do: 1, else: 0))
   end
 
   def iniciar_partida(usuario) do
 
     # Seleccionar palabra
     palabra = seleccionar_palabra()
-    palabra_normalizada = normalizar_palabra(palabra);
+    palabra_normalizada = normalizar_palabra(palabra)
     # Mostrar bienvenida al juego
     mostrar_bienvenida()
     # Empezar una ronda
@@ -52,8 +40,20 @@ defmodule Ahorcado do
 
   @spec mostrar_bienvenida :: :ok
   def mostrar_bienvenida() do
-    IO.puts("Bienvenido al juego del Ahorcado.")
-    IO.puts(" Tienes que adivinar la palabra secreta.")
+    Enum.each(0..80, fn _ -> IO.puts("\n") end)
+    IO.puts("Bienvenido al juego del:\n")
+    IO.puts(" ▄▄▄       ██░ ██  ▒█████   ██▀███   ▄████▄   ▄▄▄      ▓█████▄  ▒█████")
+    IO.puts("▒████▄    ▓██░ ██▒▒██▒  ██▒▓██ ▒ ██▒▒██▀ ▀█  ▒████▄    ▒██▀ ██▌▒██▒  ██▒")
+    IO.puts("▒██  ▀█▄  ▒██▀▀██░▒██░  ██▒▓██ ░▄█ ▒▒▓█    ▄ ▒██  ▀█▄  ░██   █▌▒██░  ██▒")
+    IO.puts("░██▄▄▄▄██ ░▓█ ░██ ▒██   ██░▒██▀▀█▄  ▒▓▓▄ ▄██▒░██▄▄▄▄██ ░▓█▄   ▌▒██   ██░")
+    IO.puts(" ▓█   ▓██▒░▓█▒░██▓░ ████▓▒░░██▓ ▒██▒▒ ▓███▀ ░ ▓█   ▓██▒░▒████▓ ░ ████▓▒░")
+    IO.puts(" ▒▒   ▓▒█░ ▒ ░░▒░▒░ ▒░▒░▒░ ░ ▒▓ ░▒▓░░ ░▒ ▒  ░ ▒▒   ▓▒█░ ▒▒▓  ▒ ░ ▒░▒░▒░")
+    IO.puts("  ▒   ▒▒ ░ ▒ ░▒░ ░  ░ ▒ ▒░   ░▒ ░ ▒░  ░  ▒     ▒   ▒▒ ░ ░ ▒  ▒   ░ ▒ ▒░")
+    IO.puts("  ░   ▒    ░  ░░ ░░ ░ ░ ▒    ░░   ░ ░          ░   ▒    ░ ░  ░ ░ ░ ░ ▒")
+    IO.puts("      ░  ░ ░  ░  ░    ░ ░     ░     ░ ░            ░  ░   ░        ░ ░")
+    IO.puts("                                    ░                   ░               ")
+
+    IO.puts("Tienes que adivinar el país secreto.")
   end
 
   def seleccionar_palabra() do
@@ -65,18 +65,19 @@ defmodule Ahorcado do
     Enum.map(fn palabra -> String.trim(palabra) end)
   end
 
-  def jugar_ronda(usuario , palabra,_ , _ , _, 0) do
-    juego_finalizado(:nok, palabra, usuario)
+  def jugar_ronda(usuario, palabra,_, _,letras, 0) do
+    mostrar_pantalla(palabra, 0,letras,usuario)
+    juego_finalizado(:nok, usuario)
   end
 
 # 3- Resolver la comparacion de Strings
   def jugar_ronda(usuario, palabra, palabra_enmascarada, _,  _, _) when palabra == palabra_enmascarada do
-    juego_finalizado(:ok, palabra, usuario)
+    juego_finalizado(:ok, usuario)
   end
 
   def jugar_ronda(usuario, palabra, palabra_enmascarada, palabra_normalizada, letras, intentos) do
     # Mostrar pantalla
-    mostrar_pantalla(palabra_enmascarada, intentos,letras)
+    mostrar_pantalla(palabra_enmascarada, intentos,letras,usuario)
     # Pedir letra
     letra_actual=pedir_letra(letras)
     letras = letras ++ [letra_actual]
@@ -90,16 +91,17 @@ defmodule Ahorcado do
     end
   end
 
-  def mostrar_pantalla(palabra_enmascarada, intentos, letras) do
+  def mostrar_pantalla(palabra_enmascarada, intentos, letras, usuario) do
     Enum.each(0..80, fn _ -> IO.puts("\n") end)
-    IO.puts("Le quedan #{intentos} intentos")
+    IO.puts("#{usuario.nombre}, te quedan #{intentos} intentos")
     #dibujar_ahorcado(intentos)
     lineas=cargar_imagenes_ahorcado() |> Enum.at(6-intentos)
     IO.puts(Enum.at(lineas,0))
     IO.puts(Enum.at(lineas,1))
     IO.puts(Enum.at(lineas,2) <> "   Letras utilizadas:")
     IO.puts(Enum.at(lineas,3) <> "   " <> Enum.join(letras," "))
-    IO.puts(Enum.at(lineas,5) <>"    La palabra a adivinar es: #{palabra_enmascarada}")
+    IO.puts(Enum.at(lineas,4) <> "    El país a adivinar es: #{palabra_enmascarada}")
+    IO.puts(Enum.at(lineas,5))
     IO.puts(Enum.at(lineas,6))
     IO.puts("")
   end
@@ -165,16 +167,16 @@ defmodule Ahorcado do
 
   end
 
-  def juego_finalizado(:ok,_,usuario) do
+  def juego_finalizado(:ok,usuario) do
     IO.puts("Has ganado")
     # Añadir estadisticas al usuario
-    usuario = actualizar_estadisticas_usuario(usuario, true)
+    usuario = Usuario.actualizar_estadisticas_usuario(usuario, true)
     preguntar_si_jugar_de_nuevo(usuario)
   end
-  def juego_finalizado(:nok, palabra,usuario) do
-    IO.puts("Has perdido. La palabra era: #{palabra}")
+  def juego_finalizado(:nok,usuario) do
+    IO.puts("Has perdido.")
     # Añadir estadisticas al usuario
-    usuario = actualizar_estadisticas_usuario(usuario, false)
+    usuario = Usuario.actualizar_estadisticas_usuario(usuario, false)
     preguntar_si_jugar_de_nuevo(usuario)
   end
 

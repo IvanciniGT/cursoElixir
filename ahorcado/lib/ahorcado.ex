@@ -1,5 +1,5 @@
-
 defmodule Ahorcado do
+
   @moduledoc """
   Documentation for `Ahorcado`.
   """

@@ -1,4 +1,4 @@
-defmodule Parallel2 do
+defmodule Parallel do
   def pmap(collection, tarea) do
     collection
     |> Enum.map(fn item -> (Task.async(fn -> tarea.(item) end))end)
@@ -6,6 +6,8 @@ defmodule Parallel2 do
   end
 
   def iniciar() do
-    IO.inspect( pmap(1..10000, fn numero -> numero * 2 end))
+#    IO.inspect( Enum.map(1..1000000, fn numero -> numero * numero * numero end))
+    IO.inspect( pmap(1..1000000, fn numero -> numero * numero * numero end))
   end
 end
+#Parallel.iniciar()

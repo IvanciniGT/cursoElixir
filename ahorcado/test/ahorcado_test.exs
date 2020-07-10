@@ -52,25 +52,25 @@ defmodule AhorcadoTest do
     Usuario.iniciar()
 
     usuarios=Usuario.recuperar_usuarios()
-    assert Enum.count(usuarios) == 0
+    assert Enum.count(usuarios) == 2
 
   end
   test "crear_usuarios" do
     Usuario.iniciar()
 
     usuarios=Usuario.recuperar_usuarios()
-    assert Enum.count(usuarios) == 0
+    assert Enum.count(usuarios) == 2
 
     {respuesta,_}=Usuario.recuperar_usuario("usuario1")
     assert respuesta == :nok
 
-    {respuesta1,usuario}=Usuario.crear_usuario("usuario1")
-    assert respuesta1 == :ok
+    {respuesta,usuario}=Usuario.crear_usuario("usuario1")
+    assert respuesta == :ok
     assert usuario.nombre == "usuario1"
 
     Usuario.borrar_usuario("usuario1")
     usuarios=Usuario.recuperar_usuarios()
-    assert Enum.count(usuarios) == 0
+    assert Enum.count(usuarios) == 2
   end
 
 end

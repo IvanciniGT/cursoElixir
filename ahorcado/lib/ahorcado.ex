@@ -178,6 +178,7 @@ defmodule Ahorcado do
     # Añadir estadisticas al usuario.
     # AQUI ESTABA EL BUG: Se recuperaba el usuario y no la tupla. Estou lo habiamos cambiado
     # usuario = Usuario.actualizar_estadisticas_usuario(usuario, true)
+    # PASABA IGUAL EN LA FUNCION SIGUIENTE
     {_, usuario} = Usuario.actualizar_estadisticas_usuario(usuario, true)
     imprimir(usuario)
     preguntar_si_jugar_de_nuevo(usuario)

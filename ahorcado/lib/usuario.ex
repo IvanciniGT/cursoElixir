@@ -1,8 +1,12 @@
-
+#defmodule MiError do
+#  defexception message: "Error en el usuario"
+#end
+# raise MiError
+# raise MiError, "Error con mensaje particular"
 defmodule Usuario do
   defstruct nombre: "", partidas_jugadas: 0, partidas_ganadas: 0
 
-  def iniciar() do
+  defp iniciar() do
     if !(Process.registered()|> Enum.member?(:cache)) do
       {:ok, pid} = Agent.start_link(fn -> %{} end)
       Process.register(pid, :cache)
@@ -10,21 +14,53 @@ defmodule Usuario do
     end
   end
 
+  def imprimir(usuario) do
+    IO.puts("Usuario: " <> usuario.nombre)
+    IO.puts("  Partidas jugadas: " <> to_string(usuario.partidas_jugadas))
+    IO.puts("  Partidas ganadas: " <> to_string(usuario.partidas_ganadas))
+  end
+
+
   def leer_fichero_usuarios() do
-    File.stream!("./lib/usuarios.db") |>
-    Enum.map(fn lineas -> lineas|>String.split(",") end) |>
-    Enum.each(fn usuario_partes -> crear_usuario_desde_enum(usuario_partes) end)
+    alias File.Error, as: Err
+    try do
+      File.stream!("./lib/usuarios.db") |>
+      Enum.map(fn lineas -> lineas|>String.split(",") end) |>
+      Enum.each(fn usuario_partes -> crear_usuario_desde_enum(usuario_partes) end)
+#      raise "ERROR en el fichero "
+#      throw 4
+    rescue
+      _ in Err -> crear_fichero_usuarios()
+#    catch
+#        x -> IO.puts(x)
+#    after
+#      IO.puts("Me imprimo en cualquier caso")
+#    else
+#      IO.puts("Me imprimo en Despues del otro me imprimo, pero solo si no ha habido error")
+    end
   end
 
   def escribir_fichero_usuarios() do
     usuarios=recuperar_usuarios()
     if Enum.count(usuarios)!=0 do
-      usuarios|>
+      # AQUI ESTABA EL OTRO BUG...
+      # Lo que se recibe como primer parametro en write es el fichero y no el contenido
+#      usuarios|>
+#        Enum.map(fn usuario -> usuario.nombre <> "," <> to_string(usuario.partidas_jugadas) <> "," <> to_string(usuario.partidas_ganadas) end) |>
+#        Enum.join("\n") |>
+#        File.write("./lib/usuarios.db")
+      contenido=usuarios|>
         Enum.map(fn usuario -> usuario.nombre <> "," <> to_string(usuario.partidas_jugadas) <> "," <> to_string(usuario.partidas_ganadas) end) |>
-        Enum.join("\n") |> File.write("./lib/usuarios.db")
+        Enum.join("\n")
+        File.write("./lib/usuarios.db",contenido)
+
     else
-      File.write("./lib/usuarios.db","")
+      crear_fichero_usuarios()
     end
+  end
+
+  def crear_fichero_usuarios() do
+    File.write("./lib/usuarios.db","")
   end
 
 
@@ -63,7 +99,7 @@ defmodule Usuario do
 
   def crear_usuario_desde_enum(partes) do
     [nombre, jugadas, ganadas] = partes |> Enum.map(fn parte -> parte|>String.trim() end)
-    crear_usuario(nombre, jugadas, ganadas)
+    crear_usuario(nombre, Integer.parse(jugadas)|> elem(0), Integer.parse(ganadas)|> elem(0))
   end
 
   def crear_usuario(nombre, jugadas \\ 0, ganadas \\ 0) do

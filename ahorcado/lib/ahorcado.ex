@@ -1,4 +1,5 @@
 defmodule Ahorcado do
+  import Usuario
 
   @moduledoc """
   Documentation for `Ahorcado`.
@@ -12,7 +13,13 @@ defmodule Ahorcado do
 
   def obtener_usuario() do
     nombre = IO.gets("Dame tu nombre: ") |> String.trim()
-    %Usuario{nombre: nombre}
+    {respuesta, usuario}=recuperar_usuario(nombre)
+    if respuesta == :nok do
+      {_, usuario}=crear_usuario(nombre)
+      usuario
+    else
+      usuario
+    end
   end
 
   def preguntar_si_otro_usuario() do
@@ -38,7 +45,6 @@ defmodule Ahorcado do
     jugar_ronda(usuario,palabra, enmascarar_palabra(palabra,palabra_normalizada, []),palabra_normalizada, [], 6)
   end
 
-  @spec mostrar_bienvenida :: :ok
   def mostrar_bienvenida() do
     Enum.each(0..80, fn _ -> IO.puts("\n") end)
     IO.puts("Bienvenido al juego del:\n")
@@ -169,14 +175,20 @@ defmodule Ahorcado do
 
   def juego_finalizado(:ok,usuario) do
     IO.puts("Has ganado")
-    # Añadir estadisticas al usuario
-    usuario = Usuario.actualizar_estadisticas_usuario(usuario, true)
+    # Añadir estadisticas al usuario.
+    # AQUI ESTABA EL BUG: Se recuperaba el usuario y no la tupla. Estou lo habiamos cambiado
+    # usuario = Usuario.actualizar_estadisticas_usuario(usuario, true)
+    {_, usuario} = Usuario.actualizar_estadisticas_usuario(usuario, true)
+    imprimir(usuario)
     preguntar_si_jugar_de_nuevo(usuario)
   end
+
   def juego_finalizado(:nok,usuario) do
+
     IO.puts("Has perdido.")
     # Añadir estadisticas al usuario
-    usuario = Usuario.actualizar_estadisticas_usuario(usuario, false)
+    {_, usuario}  = actualizar_estadisticas_usuario(usuario, false)
+    imprimir(usuario)
     preguntar_si_jugar_de_nuevo(usuario)
   end
 

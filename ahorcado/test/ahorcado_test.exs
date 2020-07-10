@@ -25,11 +25,11 @@ defmodule AhorcadoTest do
     assert usuario.partidas_jugadas == 0
     assert usuario.partidas_ganadas == 0
 
-    usuario = Ahorcado.actualizar_estadisticas_usuario(usuario,true)
+    usuario = Usuario.actualizar_estadisticas_usuario(usuario,true)
     assert usuario.partidas_jugadas == 1
     assert usuario.partidas_ganadas == 1
 
-    usuario = Ahorcado.actualizar_estadisticas_usuario(usuario,false)
+    usuario = Usuario.actualizar_estadisticas_usuario(usuario,false)
     assert usuario.partidas_jugadas == 2
     assert usuario.partidas_ganadas == 1
   end
@@ -47,5 +47,30 @@ defmodule AhorcadoTest do
     assert palabra in Ahorcado.lista_palabras()
   end
 
+
+  test "iniciar_usuarios" do
+    Usuario.iniciar()
+
+    usuarios=Usuario.recuperar_usuarios()
+    assert Enum.count(usuarios) == 0
+
+  end
+  test "crear_usuarios" do
+    Usuario.iniciar()
+
+    usuarios=Usuario.recuperar_usuarios()
+    assert Enum.count(usuarios) == 0
+
+    {respuesta,_}=Usuario.recuperar_usuario("usuario1")
+    assert respuesta == :nok
+
+    {respuesta1,usuario}=Usuario.crear_usuario("usuario1")
+    assert respuesta1 == :ok
+    assert usuario.nombre == "usuario1"
+
+    Usuario.borrar_usuario("usuario1")
+    usuarios=Usuario.recuperar_usuarios()
+    assert Enum.count(usuarios) == 0
+  end
 
 end

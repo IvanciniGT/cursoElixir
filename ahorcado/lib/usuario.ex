@@ -3,9 +3,11 @@ defmodule Usuario do
   defstruct nombre: "", partidas_jugadas: 0, partidas_ganadas: 0
 
   def iniciar() do
-    {:ok, pid} = Agent.start_link(fn -> %{} end)
-    Process.register(pid, :cache)
-    leer_fichero_usuarios()
+    if !(Process.registered()|> Enum.member?(:cache)) do
+      {:ok, pid} = Agent.start_link(fn -> %{} end)
+      Process.register(pid, :cache)
+      leer_fichero_usuarios()
+    end
   end
 
   def leer_fichero_usuarios() do
@@ -15,9 +17,14 @@ defmodule Usuario do
   end
 
   def escribir_fichero_usuarios() do
-    recuperar_usuarios() |>
-      Enum.each(fn usuario -> usuario.nombre <> "," <> usuario.partidas_jugadas<> "," <> usuario.partidas_ganadas end) |>
-      Enum.join("\n") |> File.write("./lib/usuarios.db")
+    usuarios=recuperar_usuarios()
+    if Enum.count(usuarios)!=0 do
+      usuarios|>
+        Enum.map(fn usuario -> usuario.nombre <> "," <> to_string(usuario.partidas_jugadas) <> "," <> to_string(usuario.partidas_ganadas) end) |>
+        Enum.join("\n") |> File.write("./lib/usuarios.db")
+    else
+      File.write("./lib/usuarios.db","")
+    end
   end
 
 
@@ -31,6 +38,7 @@ defmodule Usuario do
     usuario=Map.replace!( usuario, :partidas_jugadas, jugadas) |>
             Map.replace!( :partidas_ganadas, ganadas)
     Agent.update(:cache, fn map -> Map.put(map, usuario.nombre, usuario) end)
+    escribir_fichero_usuarios()
     usuario |> tuplarizar()
   end
 
@@ -43,10 +51,12 @@ defmodule Usuario do
   end
 
   def recuperar_usuario(nombre)do
+    iniciar()
     Agent.get(:cache, fn map -> Map.get(map,nombre) end) |> tuplarizar()
   end
 
   def recuperar_usuarios() do
+    iniciar()
     Agent.get(:cache, fn map -> map end) |>
     Map.values()
   end
@@ -57,6 +67,7 @@ defmodule Usuario do
   end
 
   def crear_usuario(nombre, jugadas \\ 0, ganadas \\ 0) do
+    iniciar()
     {respuesta, _} = recuperar_usuario(nombre)
     if respuesta == :ok do
       {:nok, nil}
@@ -67,7 +78,9 @@ defmodule Usuario do
   end
 
   def borrar_usuario(nombre) do
+    iniciar()
     Agent.update(:cache, fn map -> Map.delete(map, nombre) end)
+    escribir_fichero_usuarios()
   end
 
 end
